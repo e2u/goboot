@@ -9,10 +9,6 @@ import (
 )
 
 type ConfigContext struct {
-	AppName     string
-	BasePath    string // e.g. /Users/weidewang/Workspace/go/src/e2u.io/goboot-sample
-	DevMode     bool
-	LogFilePath string
 	*ini.File
 	RunModeSection *ini.Section
 	DefaultSection *ini.Section
@@ -117,24 +113,4 @@ func (c *ConfigContext) MustUint64(key string, defaultVal uint64) uint64 {
 		return v.MustUint64()
 	}
 	return defaultVal
-}
-
-func (c *ConfigContext) WithBasePath(basePath string) *ConfigContext {
-	c.BasePath = basePath
-	return c
-}
-
-func (c *ConfigContext) WithAppName(appName string) *ConfigContext {
-	c.AppName = appName
-	return c
-}
-
-func (c *ConfigContext) WithDevMode(devMode bool) *ConfigContext {
-	c.DevMode = devMode
-	return c
-}
-
-func (c *ConfigContext) WithLogFilepath(logFilePath string) *ConfigContext {
-	c.LogFilePath = logFilePath
-	return c
 }
