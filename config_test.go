@@ -1,6 +1,7 @@
 package goboot
 
 import (
+	"bytes"
 	"net/url"
 	"testing"
 	"time"
@@ -12,12 +13,11 @@ func TestNewConfigWithFileLoadFilePanic(t *testing.T) {
 			t.Errorf("The code did not panic")
 		}
 	}()
-	NewConfigWithFile("noexits.conf")
+	NewConfigWithFile("noexits.conf", "dev")
 }
 
 func TestNewConfigWithFile(t *testing.T) {
-	RunMode = "dev"
-	cfg := NewConfigWithFile("config_test.conf")
+	cfg := NewConfigWithFile("config_test.conf", "dev")
 
 	if cfg.MustString("default.app.name") != "DefaultAppName" {
 		t.Error("default.app.name")
@@ -227,6 +227,27 @@ func TestNewConfigWithFile(t *testing.T) {
 
 	if cfg.MustURL("url.4", url1).String() != url1.String() {
 		t.Error("url.4 default")
+	}
+
+	b1 := []byte("hello")
+	if bytes.Equal(cfg.MustBase64String("base64.1"), b1) {
+		t.Error("base64.1")
+	}
+
+	if cfg.MustBase64String("base64.2") != nil {
+		t.Error("base64.2")
+	}
+
+	if cfg.MustBase64String("base64.noexists") != nil {
+		t.Error("base64.noexists")
+	}
+
+	if !bytes.Equal(cfg.MustBase64String("base64.2", b1), b1) {
+		t.Error("base64.2")
+	}
+
+	if !bytes.Equal(cfg.MustBase64String("base64.noexists", b1), b1) {
+		t.Error("base64.1.noexists.default")
 	}
 
 }

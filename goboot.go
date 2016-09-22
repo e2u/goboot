@@ -6,13 +6,13 @@ import (
 )
 
 var (
-	RunMode string
-	Config  *ConfigContext
+	runMode string
+	Config  *configContext
 )
 
 func Init(mode string) {
-	RunMode = mode
-	Config = NewConfigWithFile("conf/app.conf")
+	runMode = mode
+	Config = NewConfigWithFile("conf/app.conf", mode)
 	InitLogger()
 }
 
@@ -21,6 +21,9 @@ func Startup() {
 	initPprof()
 }
 
+func RunMode() string {
+	return runMode
+}
 func initPprof() {
 	go func() {
 		ppa := Config.MustString("pprof.addr", "")
