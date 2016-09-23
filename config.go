@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
+	"strconv"
 	"time"
 
 	ini "gopkg.in/ini.v1"
@@ -34,6 +35,59 @@ func NewConfigWithFile(file, runMode string) *configContext {
 		}(),
 	}
 	return c
+}
+
+func NewConfigWithoutFile(runMode string) *configContext {
+	cfg := ini.Empty()
+	envs := []string{ini.DEFAULT_SECTION, "dev", "test", "prod", runMode}
+	for _, env := range envs {
+		if _, err := cfg.GetSection(env); err != nil {
+			continue
+		}
+		sec, _ := cfg.NewSection(env)
+		sec.NewKey("log.output", "stdout")
+		sec.NewKey("log.level", "debug")
+		sec.NewKey("mode.dev", "false")
+		sec.NewKey("log.dump.http.request", "true")
+		sec.NewKey("log.dump.http.request.body", "true")
+		sec.NewKey("log.dump.http.response", "true")
+		sec.NewKey("log.dump.http.response.body", "true")
+	}
+	dsec, _ := cfg.GetSection(ini.DEFAULT_SECTION)
+	rsec, _ := cfg.GetSection(runMode)
+	return &configContext{
+		File:           cfg,
+		runModeSection: rsec,
+		defaultSection: dsec,
+	}
+}
+
+func (c *configContext) LogLevel() string {
+	return c.LogLevel()
+}
+
+func (c *configContext) SetModeDev(b bool) {
+	c.defaultSection.Key("mode.dev").SetValue(strconv.FormatBool(b))
+}
+
+func (c *configContext) ModeDev() bool {
+	return c.MustBool("mode.dev")
+}
+
+func (c *configContext) LogDumpHttpRequest() bool {
+	return c.MustBool("log.dump.http.request")
+}
+
+func (c *configContext) LogDumpHttpRequestBody() bool {
+	return c.MustBool("log.dump.http.request.body")
+}
+
+func (c *configContext) LogDumpHttpResponse() bool {
+	return c.MustBool("log.dump.http.response")
+}
+
+func (c *configContext) LogDumpHttpResponseBody() bool {
+	return c.MustBool("log.dump.http.response.body")
 }
 
 func (c *configContext) mustKeyValue(key string) (*ini.Key, error) {
@@ -130,12 +184,26 @@ func (c *configContext) MustUint64(key string, defaultVal ...uint64) uint64 {
 	return defaultVal[0]
 }
 
-func (c *configContext) MustURL(key string, defaultVal ...*url.URL) *url.URL {
+func (c *configContext) MustURL(key string, defaultVal ...interface{}) *url.URL {
+	parseURL := func(v interface{}) *url.URL {
+		switch v.(type) {
+		case string:
+			if u, err := url.Parse(v.(string)); err == nil {
+				return u
+			}
+			return nil
+		case *url.URL:
+			return v.(*url.URL)
+		default:
+			return nil
+		}
+	}
+
 	kv := c.MustString(key)
 	if kv == "" && len(defaultVal) == 0 {
 		return nil
 	} else if kv == "" && len(defaultVal) > 0 {
-		return defaultVal[0]
+		return parseURL(defaultVal[0])
 	}
 
 	if u, err := url.Parse(kv); err == nil {
@@ -143,7 +211,7 @@ func (c *configContext) MustURL(key string, defaultVal ...*url.URL) *url.URL {
 	} else if len(defaultVal) == 0 {
 		return nil
 	}
-	return defaultVal[0]
+	return parseURL(defaultVal[0])
 }
 
 func (c *configContext) MustBase64String(key string, defaultVal ...[]byte) []byte {

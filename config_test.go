@@ -16,6 +16,14 @@ func TestNewConfigWithFileLoadFilePanic(t *testing.T) {
 	NewConfigWithFile("noexits.conf", "dev")
 }
 
+func TestNewConfigWithoutFile(t *testing.T) {
+	cfg := NewConfigWithoutFile("dev")
+
+	if cfg.MustString("log.output") != "stdout" {
+		t.Error("log.output")
+	}
+}
+
 func TestNewConfigWithFile(t *testing.T) {
 	cfg := NewConfigWithFile("config_test.conf", "dev")
 
@@ -227,6 +235,18 @@ func TestNewConfigWithFile(t *testing.T) {
 
 	if cfg.MustURL("url.4", url1).String() != url1.String() {
 		t.Error("url.4 default")
+	}
+
+	if cfg.MustURL("url.noexits.string", "http://www.domain.com/path.file.ext").String() != "http://www.domain.com/path.file.ext" {
+		t.Error("url.noexits.string")
+	}
+
+	if cfg.MustURL("url.noexits.string.error", "http://192.168.0.%31:8080/") != nil {
+		t.Error("url.noexits.string.error")
+	}
+
+	if cfg.MustURL("url.noexits.string.unsuport.type", 10000) != nil {
+		t.Error("url.noexits.string.unsuport.type")
 	}
 
 	b1 := []byte("hello")

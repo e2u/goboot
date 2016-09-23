@@ -2,6 +2,7 @@ package goboot
 
 import (
 	"net/http"
+	"os"
 	"strings"
 )
 
@@ -10,9 +11,19 @@ var (
 	Config  *configContext
 )
 
-func Init(mode string) {
-	runMode = mode
-	Config = NewConfigWithFile("conf/app.conf", mode)
+func Init(mode ...string) {
+	if len(mode) == 0 {
+		runMode = "auto"
+	} else {
+		runMode = mode[0]
+	}
+
+	if _, err := os.Stat("config/app.conf"); os.IsNotExist(err) {
+		Config = NewConfigWithoutFile(runMode)
+	} else {
+		Config = NewConfigWithFile("conf/app.conf", runMode)
+	}
+
 	InitLogger()
 }
 
