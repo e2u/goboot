@@ -7,8 +7,9 @@ import (
 )
 
 var (
-	Log           *logging.Logger
-	LoggingFormat = logging.MustStringFormatter(`%{color}%{time:2006-01-02T15:04:05.9999-07:00} %{id:08x} %{shortfile} %{longfunc} ▶ %{level:-8s} %{color:reset} %{message}`)
+	Log                       *logging.Logger
+	LoggingFormatWithColor    = logging.MustStringFormatter(`%{color}%{time:2006-01-02T15:04:05.9999-07:00} %{id:08x} %{shortfile} %{longfunc} ▶ %{level:-8s} %{color:reset} %{message}`)
+	LoggingFormatWithoutColor = logging.MustStringFormatter(`%{time:2006-01-02T15:04:05.9999-07:00} %{id:08x} %{shortfile} %{longfunc} ▶ %{level:-8s} %{message}`)
 )
 
 type EmtpyBackend struct{}
@@ -26,6 +27,7 @@ func InitLoggerWithModule(module string) {
 	Log = logging.MustGetLogger(module)
 	var b logging.Backend
 	output := Config.MustString("log.output", "off")
+
 	switch output {
 	case "off":
 		b = EmtpyBackend{}
@@ -39,6 +41,11 @@ func InitLoggerWithModule(module string) {
 		} else {
 			b = EmtpyBackend{}
 		}
+	}
+
+	LoggingFormat := LoggingFormatWithoutColor
+	if Config.MustBool("log.color") {
+		LoggingFormat = LoggingFormatWithColor
 	}
 
 	formater := logging.NewBackendFormatter(b, LoggingFormat)

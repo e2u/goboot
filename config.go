@@ -47,6 +47,7 @@ func NewConfigWithoutFile(runMode string) *configContext {
 		sec, _ := cfg.NewSection(env)
 		sec.NewKey("log.output", "stdout")
 		sec.NewKey("log.level", "debug")
+		sec.NewKey("log.color","false")
 		sec.NewKey("mode.dev", "false")
 		sec.NewKey("log.dump.http.request", "true")
 		sec.NewKey("log.dump.http.request.body", "true")
