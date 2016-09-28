@@ -13,8 +13,8 @@ import (
 
 type configContext struct {
 	*ini.File
-	runModeSection *ini.Section
-	defaultSection *ini.Section
+	RunModeSection *ini.Section
+	DefaultSection *ini.Section
 }
 
 func NewConfigWithFile(file, runMode string) *configContext {
@@ -25,11 +25,11 @@ func NewConfigWithFile(file, runMode string) *configContext {
 
 	c := &configContext{
 		File: cfg,
-		runModeSection: func() *ini.Section {
+		RunModeSection: func() *ini.Section {
 			sec, _ := cfg.GetSection(runMode)
 			return sec
 		}(),
-		defaultSection: func() *ini.Section {
+		DefaultSection: func() *ini.Section {
 			sec, _ := cfg.GetSection(ini.DEFAULT_SECTION)
 			return sec
 		}(),
@@ -41,13 +41,10 @@ func NewConfigWithoutFile(runMode string) *configContext {
 	cfg := ini.Empty()
 	envs := []string{ini.DEFAULT_SECTION, "dev", "test", "prod", runMode}
 	for _, env := range envs {
-		if _, err := cfg.GetSection(env); err != nil {
-			continue
-		}
 		sec, _ := cfg.NewSection(env)
 		sec.NewKey("log.output", "stdout")
 		sec.NewKey("log.level", "debug")
-		sec.NewKey("log.color","false")
+		sec.NewKey("log.color", "false")
 		sec.NewKey("mode.dev", "false")
 		sec.NewKey("log.dump.http.request", "true")
 		sec.NewKey("log.dump.http.request.body", "true")
@@ -58,8 +55,8 @@ func NewConfigWithoutFile(runMode string) *configContext {
 	rsec, _ := cfg.GetSection(runMode)
 	return &configContext{
 		File:           cfg,
-		runModeSection: rsec,
-		defaultSection: dsec,
+		RunModeSection: rsec,
+		DefaultSection: dsec,
 	}
 }
 
@@ -68,7 +65,7 @@ func (c *configContext) LogLevel() string {
 }
 
 func (c *configContext) SetModeDev(b bool) {
-	c.defaultSection.Key("mode.dev").SetValue(strconv.FormatBool(b))
+	c.DefaultSection.Key("mode.dev").SetValue(strconv.FormatBool(b))
 }
 
 func (c *configContext) ModeDev() bool {
@@ -93,10 +90,10 @@ func (c *configContext) LogDumpHttpResponseBody() bool {
 
 func (c *configContext) mustKeyValue(key string) (*ini.Key, error) {
 	switch {
-	case c.runModeSection != nil && c.runModeSection.HasKey(key):
-		return c.runModeSection.Key(key), nil
-	case c.defaultSection.HasKey(key):
-		return c.defaultSection.Key(key), nil
+	case c.RunModeSection != nil && c.RunModeSection.HasKey(key):
+		return c.RunModeSection.Key(key), nil
+	case c.DefaultSection.HasKey(key):
+		return c.DefaultSection.Key(key), nil
 	default:
 		return nil, errors.New(fmt.Sprintf("Invalid ini key: %s", key))
 	}
