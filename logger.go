@@ -26,7 +26,7 @@ func InitLogger() {
 func InitLoggerWithModule(module string) {
 	Log = logging.MustGetLogger(module)
 	var b logging.Backend
-	output := Config.MustString("log.output", "off")
+	output := Config.MustString(IniLogOutput, "off")
 
 	switch output {
 	case "off":
@@ -44,13 +44,13 @@ func InitLoggerWithModule(module string) {
 	}
 
 	LoggingFormat := LoggingFormatWithoutColor
-	if Config.MustBool("log.color") {
+	if Config.MustBool(IniLogColoe) {
 		LoggingFormat = LoggingFormatWithColor
 	}
 
 	formater := logging.NewBackendFormatter(b, LoggingFormat)
 	backendLeveled := logging.AddModuleLevel(formater)
-	level, err := logging.LogLevel(Config.MustString("log.level", "DEBUG"))
+	level, err := logging.LogLevel(Config.MustString(IniLevel, "DEBUG"))
 
 	if err != nil {
 		level = logging.DEBUG
