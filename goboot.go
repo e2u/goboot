@@ -18,7 +18,7 @@ func Init(mode ...string) {
 		runMode = mode[0]
 	}
 
-	if _, err := os.Stat("config/app.conf"); os.IsNotExist(err) {
+	if _, err := os.Stat("conf/app.conf"); os.IsNotExist(err) {
 		Config = NewConfigWithoutFile(runMode)
 	} else {
 		Config = NewConfigWithFile("conf/app.conf", runMode)

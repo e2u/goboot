@@ -19,8 +19,8 @@ func TestNewConfigWithFileLoadFilePanic(t *testing.T) {
 func TestNewConfigWithoutFile(t *testing.T) {
 	cfg := NewConfigWithoutFile("dev")
 
-	if cfg.MustString("log.output") != "stdout" {
-		t.Error("log.output")
+	if cfg.MustString(IniLogOutput) != "stdout" {
+		t.Error(IniLogOutput)
 	}
 }
 

@@ -42,14 +42,14 @@ func NewConfigWithoutFile(runMode string) *configContext {
 	envs := []string{ini.DEFAULT_SECTION, "dev", "test", "prod", runMode}
 	for _, env := range envs {
 		sec, _ := cfg.NewSection(env)
-		sec.NewKey("log.output", "stdout")
-		sec.NewKey("log.level", "debug")
-		sec.NewKey("log.color", "false")
-		sec.NewKey("mode.dev", "false")
-		sec.NewKey("log.dump.http.request", "true")
-		sec.NewKey("log.dump.http.request.body", "true")
-		sec.NewKey("log.dump.http.response", "true")
-		sec.NewKey("log.dump.http.response.body", "true")
+		sec.NewKey(IniLogOutput, "stdout")
+		sec.NewKey(IniLevel, "debug")
+		sec.NewKey(IniLogColoe, "false")
+		sec.NewKey(IniModeDev, "false")
+		sec.NewKey(IniDumpHttpRequest, "true")
+		sec.NewKey(IniDumpHttpRequestBody, "true")
+		sec.NewKey(IniDumpHttpResponse, "true")
+		sec.NewKey(IniDumpHttpResponseBody, "true")
 	}
 	dsec, _ := cfg.GetSection(ini.DEFAULT_SECTION)
 	rsec, _ := cfg.GetSection(runMode)
@@ -65,27 +65,43 @@ func (c *configContext) LogLevel() string {
 }
 
 func (c *configContext) SetModeDev(b bool) {
-	c.DefaultSection.Key("mode.dev").SetValue(strconv.FormatBool(b))
+	c.RunModeSection.Key(IniModeDev).SetValue(strconv.FormatBool(b))
 }
 
 func (c *configContext) ModeDev() bool {
-	return c.MustBool("mode.dev")
+	return c.MustBool(IniModeDev)
 }
 
 func (c *configContext) LogDumpHttpRequest() bool {
-	return c.MustBool("log.dump.http.request")
+	return c.MustBool(IniDumpHttpRequest)
 }
 
 func (c *configContext) LogDumpHttpRequestBody() bool {
-	return c.MustBool("log.dump.http.request.body")
+	return c.MustBool(IniDumpHttpRequestBody)
 }
 
 func (c *configContext) LogDumpHttpResponse() bool {
-	return c.MustBool("log.dump.http.response")
+	return c.MustBool(IniDumpHttpResponse)
 }
 
 func (c *configContext) LogDumpHttpResponseBody() bool {
-	return c.MustBool("log.dump.http.response.body")
+	return c.MustBool(IniDumpHttpResponseBody)
+}
+
+func (c *configContext) SetLogDumpHttpRequest(b bool) {
+	c.RunModeSection.Key(IniDumpHttpRequest).SetValue(strconv.FormatBool(b))
+}
+
+func (c *configContext) SetLogDumpHttpRequestBody(b bool) {
+	c.RunModeSection.Key(IniDumpHttpRequestBody).SetValue(strconv.FormatBool(b))
+}
+
+func (c *configContext) SetLogDumpHttpResponse(b bool) {
+	c.RunModeSection.Key(IniDumpHttpResponse).SetValue(strconv.FormatBool(b))
+}
+
+func (c *configContext) SetLogDumpHttpResponseBody(b bool) {
+	c.RunModeSection.Key(IniDumpHttpResponseBody).SetValue(strconv.FormatBool(b))
 }
 
 func (c *configContext) mustKeyValue(key string) (*ini.Key, error) {
