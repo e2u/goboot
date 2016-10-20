@@ -44,7 +44,7 @@ func NewConfigWithoutFile(runMode string) *configContext {
 		sec, _ := cfg.NewSection(env)
 		sec.NewKey(IniLogOutput, "stdout")
 		sec.NewKey(IniLevel, "debug")
-		sec.NewKey(IniLogColoe, "false")
+		sec.NewKey(IniLogFormat, "json")
 		sec.NewKey(IniModeDev, "false")
 		sec.NewKey(IniDumpHttpRequest, "true")
 		sec.NewKey(IniDumpHttpRequestBody, "true")

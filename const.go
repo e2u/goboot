@@ -3,7 +3,7 @@ package goboot
 const (
 	IniLogOutput            = "log.output"
 	IniLevel                = "log.level"
-	IniLogColoe             = "log.color"
+	IniLogFormat            = "log.format"
 	IniModeDev              = "mode.dev"
 	IniDumpHttpRequest      = "log.dump.http.request"
 	IniDumpHttpRequestBody  = "log.dump.http.request.body"

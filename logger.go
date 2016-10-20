@@ -9,6 +9,7 @@ import (
 var (
 	Log                       *logging.Logger
 	LoggingFormatWithColor    = logging.MustStringFormatter(`%{color}%{time:2006-01-02T15:04:05.9999-07:00} %{id:08x} %{shortfile} %{longfunc} ▶ %{level:-8s} %{color:reset} %{message}`)
+	LoggingFormatJSON         = logging.MustStringFormatter(`{"timestamp":"%{time:2006-01-02T15:04:05.9999-07:00}","id":%{id:08x},"filename":"%{shortfile}","func":"%{longfunc}","level":"%{level:s}","msg":"%{message}"}`)
 	LoggingFormatWithoutColor = logging.MustStringFormatter(`%{time:2006-01-02T15:04:05.9999-07:00} %{id:08x} %{shortfile} %{longfunc} ▶ %{level:-8s} %{message}`)
 )
 
@@ -43,9 +44,17 @@ func InitLoggerWithModule(module string) {
 		}
 	}
 
-	LoggingFormat := LoggingFormatWithoutColor
-	if Config.MustBool(IniLogColoe) {
+	var LoggingFormat logging.Formatter
+
+	switch Config.MustString(IniLogFormat) {
+	case "plain":
+		LoggingFormat = LoggingFormatWithoutColor
+	case "plain-color":
 		LoggingFormat = LoggingFormatWithColor
+	case "json":
+		LoggingFormat = LoggingFormatJSON
+	default:
+		LoggingFormat = LoggingFormatWithoutColor
 	}
 
 	formater := logging.NewBackendFormatter(b, LoggingFormat)
