@@ -65,9 +65,19 @@ func (j *Job) Run() {
 	}()
 
 	if !SelfConcurrent {
+		if atomic.LoadUint32(&j.status) > 0 {
+			return
+		}
 		j.running.Lock()
 		defer j.running.Unlock()
 	}
+	
+	/*
+	if !SelfConcurrent {
+		j.running.Lock()
+		defer j.running.Unlock()
+	}*/
+	
 
 	if workPermits != nil {
 		workPermits <- struct{}{}
