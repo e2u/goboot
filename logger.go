@@ -9,7 +9,9 @@ import (
 var (
 	Log                       *logging.Logger
 	LoggingFormatWithColor    = logging.MustStringFormatter(`%{color}%{time:2006-01-02T15:04:05.9999-07:00} %{id:08x} %{shortfile} %{longfunc} ▶ %{level:-8s} %{color:reset} %{message}`)
+	LoggingFormatJSON         = logging.MustStringFormatter(`{"timestamp":"%{time:2006-01-02T15:04:05.9999-07:00}","id":%{id:08x},"filename":"%{shortfile}","func":"%{longfunc}","level":"%{level:s}","msg":"%{message}"}`)
 	LoggingFormatWithoutColor = logging.MustStringFormatter(`%{time:2006-01-02T15:04:05.9999-07:00} %{id:08x} %{shortfile} %{longfunc} ▶ %{level:-8s} %{message}`)
+	LoggingFormatLogStash     = logging.MustStringFormatter(`{"@timestamp":"%{time:2006-01-02T15:04:05.9999-07:00}","id":%{id:08x},"filename":"%{shortfile}","func":"%{longfunc}","level":"%{level:s}","msg":"%{message}"}`)
 )
 
 type EmtpyBackend struct{}
@@ -24,37 +26,57 @@ func InitLogger() {
 }
 
 func InitLoggerWithModule(module string) {
-	Log = logging.MustGetLogger(module)
-	var b logging.Backend
-	output := Config.MustString(IniLogOutput, "off")
+	format := Config.MustString(IniLogFormat, "plain")
+	level := Config.MustString(IniLevel, "DEBUG")
+	output := Config.MustString(IniLogOutput, "stdout")
 
-	switch output {
-	case "off":
-		b = EmtpyBackend{}
-	case "stdout":
-		b = logging.NewLogBackend(os.Stdout, "", 0)
-	case "stderr":
-		b = logging.NewLogBackend(os.Stdout, "", 0)
+	Log = initLogger(module, format, level, output)
+}
+
+func initLogger(module string, format, level, output string) *logging.Logger {
+	l := logging.MustGetLogger(module)
+
+	var loggingFormat logging.Formatter
+
+	switch format {
+	case "plain":
+		loggingFormat = LoggingFormatWithoutColor
+	case "plain-color":
+		loggingFormat = LoggingFormatWithColor
+	case "json":
+		loggingFormat = LoggingFormatJSON
+	case "logstash":
+		loggingFormat = LoggingFormatLogStash
 	default:
-		if out, err := os.OpenFile(output, os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.ModeAppend|0644); err == nil {
-			b = logging.NewLogBackend(out, "", 0)
-		} else {
-			b = EmtpyBackend{}
-		}
+		loggingFormat = LoggingFormatWithoutColor
 	}
 
-	LoggingFormat := LoggingFormatWithoutColor
-	if Config.MustBool(IniLogColoe) {
-		LoggingFormat = LoggingFormatWithColor
-	}
-
-	formater := logging.NewBackendFormatter(b, LoggingFormat)
+	b := getBackend(output)
+	formater := logging.NewBackendFormatter(b, loggingFormat)
 	backendLeveled := logging.AddModuleLevel(formater)
-	level, err := logging.LogLevel(Config.MustString(IniLevel, "DEBUG"))
+	lev, err := logging.LogLevel(level)
 
 	if err != nil {
-		level = logging.DEBUG
+		lev = logging.DEBUG
 	}
-	backendLeveled.SetLevel(level, module)
+	backendLeveled.SetLevel(lev, module)
 	logging.SetBackend(backendLeveled)
+	return l
+}
+
+func getBackend(output string) logging.Backend {
+	switch output {
+	case "off":
+		return EmtpyBackend{}
+	case "stdout":
+		return logging.NewLogBackend(os.Stdout, "", 0)
+	case "stderr":
+		return logging.NewLogBackend(os.Stdout, "", 0)
+	default:
+		if out, err := os.OpenFile(output, os.O_WRONLY|os.O_APPEND|os.O_CREATE, os.ModeAppend|0644); err == nil {
+			return logging.NewLogBackend(out, "", 0)
+		} else {
+			return EmtpyBackend{}
+		}
+	}
 }

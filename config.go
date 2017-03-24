@@ -2,10 +2,12 @@ package goboot
 
 import (
 	"encoding/base64"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"net/url"
 	"strconv"
+	"strings"
 	"time"
 
 	ini "gopkg.in/ini.v1"
@@ -44,7 +46,7 @@ func NewConfigWithoutFile(runMode string) *configContext {
 		sec, _ := cfg.NewSection(env)
 		sec.NewKey(IniLogOutput, "stdout")
 		sec.NewKey(IniLevel, "debug")
-		sec.NewKey(IniLogColoe, "false")
+		sec.NewKey(IniLogFormat, "json")
 		sec.NewKey(IniModeDev, "false")
 		sec.NewKey(IniDumpHttpRequest, "true")
 		sec.NewKey(IniDumpHttpRequestBody, "true")
@@ -242,4 +244,36 @@ func (c *configContext) MustBase64String(key string, defaultVal ...[]byte) []byt
 		return nil
 	}
 	return defaultVal[0]
+}
+
+func (c *configContext) MustHexString(key string, defaultVal ...[]byte) []byte {
+	kv := c.MustString(key)
+	if kv == "" && len(defaultVal) == 0 {
+		return nil
+	} else if kv == "" && len(defaultVal) > 0 {
+		return defaultVal[0]
+	}
+
+	if b, err := hex.DecodeString(kv); err == nil {
+		return b
+	} else if len(defaultVal) == 0 {
+		return nil
+	}
+
+	return defaultVal[0]
+}
+
+func (c *configContext) MustStringArray(key string, sep string, defaultVal ...string) []string {
+	kv := c.MustString(key)
+	if kv == "" && len(defaultVal) == 0 {
+		return nil
+	}
+	var sr []string
+	if as := strings.Split(kv, sep); len(as) > 0 {
+		for _, a := range as {
+			sr = append(sr, strings.TrimSpace(a))
+		}
+		return sr
+	}
+	return strings.Split(defaultVal[0], sep)
 }
