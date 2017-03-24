@@ -149,6 +149,12 @@ func TestNewConfigWithFile(t *testing.T) {
 		t.Error("string.hello.head.space")
 	}
 
+	ats := cfg.MustStringArray("string.array", ",")
+
+	if ats[0] != "你好" || ats[1] != "哈哈" || ats[2] != "一直" {
+		t.Error("string.array")
+	}
+
 	t0, _ := time.Parse(time.RFC3339, "1970-01-01T00:00:00+00:00")
 
 	t1, _ := time.Parse(time.RFC3339, "2016-09-22T10:45:46+08:00")
