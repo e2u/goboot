@@ -1,6 +1,10 @@
 package main
 
-import g "github.com/e2u/goboot"
+import (
+	"fmt"
+
+	g "github.com/e2u/goboot"
+)
 
 func main() {
 	g.Init("dev")
@@ -11,7 +15,7 @@ func main() {
 	})
 
 	g.Log.Debug("MustString: ", g.Config.MustString("sqs.name", "none"))
-	g.Log.Debug("MustInt: ", g.Config.MustInt("key.int", 100))
+	g.Log.Debug("MustInt: ", g.Config.MustInt("key.int()", 100))
 	g.Log.Debug("MustInt: ", g.Config.MustInt("key.int.noexists", 0))
 
 	g.Log.Debug("debug")
@@ -22,4 +26,9 @@ func main() {
 	g.Log.Critical("critical")
 	g.Startup()
 
+	fmt.Println("run mode key values")
+	for _, k := range g.Config.RunModeSection.KeyStrings() {
+		v, _ := g.Config.RunModeSection.GetKey(k)
+		fmt.Println(k, "=>", v)
+	}
 }
