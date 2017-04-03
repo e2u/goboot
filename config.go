@@ -25,18 +25,7 @@ func NewConfigWithFile(file, runMode string) *configContext {
 		panic(err)
 	}
 
-	c := &configContext{
-		File: cfg,
-		RunModeSection: func() *ini.Section {
-			sec, _ := cfg.GetSection(runMode)
-			return sec
-		}(),
-		DefaultSection: func() *ini.Section {
-			sec, _ := cfg.GetSection(ini.DEFAULT_SECTION)
-			return sec
-		}(),
-	}
-	return c
+	return newConfigContextWithMode(cfg, runMode)
 }
 
 func NewConfigWithoutFile(runMode string) *configContext {
@@ -46,19 +35,74 @@ func NewConfigWithoutFile(runMode string) *configContext {
 		sec, _ := cfg.NewSection(env)
 		sec.NewKey(IniLogOutput, "stdout")
 		sec.NewKey(IniLevel, "debug")
-		sec.NewKey(IniLogFormat, "json")
+		sec.NewKey(IniLogFormat, "plain")
 		sec.NewKey(IniModeDev, "false")
 		sec.NewKey(IniDumpHttpRequest, "true")
 		sec.NewKey(IniDumpHttpRequestBody, "true")
 		sec.NewKey(IniDumpHttpResponse, "true")
 		sec.NewKey(IniDumpHttpResponseBody, "true")
 	}
-	dsec, _ := cfg.GetSection(ini.DEFAULT_SECTION)
-	rsec, _ := cfg.GetSection(runMode)
+
+	return newConfigContextWithMode(cfg, runMode)
+}
+
+func newConfigContextWithMode(cfg *ini.File, runMode string) *configContext {
+
+	readIncludeFile := func(name string) (*ini.Section, error) {
+		nameSplit := strings.Split(name, ":")
+		if len(nameSplit) <= 0 {
+			return nil, errors.New("Illegal parameters: " + name)
+		}
+		namePrefix := nameSplit[0]
+		path := nameSplit[1]
+		if strings.HasPrefix(path, "//") {
+			path = path[2:]
+		}
+
+		switch namePrefix {
+		case "file":
+			secCfg, err := ini.Load(path)
+			if err != nil {
+				return nil, err
+			}
+			return secCfg.GetSection(ini.DEFAULT_SECTION)
+		case "s3":
+		default:
+
+		}
+		return nil, nil
+	}
+
+	processInclude := func(sec *ini.Section) error {
+		for _, k := range sec.Keys() {
+			kn := strings.TrimSpace(k.Name())
+			if !strings.HasPrefix(kn, "@include") {
+				continue
+			}
+			kv := k.MustString("")
+			isec, err := readIncludeFile(kv)
+			if err != nil {
+				panic(err.Error())
+			}
+			for _, k := range isec.KeyStrings() {
+				sec.NewKey(k, isec.Key(k).Value())
+			}
+		}
+		return nil
+	}
+
 	return &configContext{
-		File:           cfg,
-		RunModeSection: rsec,
-		DefaultSection: dsec,
+		File: cfg,
+		RunModeSection: func() *ini.Section {
+			sec, _ := cfg.GetSection(runMode)
+			processInclude(sec)
+			return sec
+		}(),
+		DefaultSection: func() *ini.Section {
+			sec, _ := cfg.GetSection(ini.DEFAULT_SECTION)
+			processInclude(sec)
+			return sec
+		}(),
 	}
 }
 
