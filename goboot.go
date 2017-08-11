@@ -28,6 +28,12 @@ func Init(mode ...string) {
 	InitLogger()
 }
 
+func InitWithModeAndFile(mode, file string) {
+	runMode = mode
+	Config = NewConfigWithFile(file, runMode)
+	InitLogger()
+}
+
 func Startup() {
 	runStartupHooks()
 	initPprof()
