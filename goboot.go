@@ -9,7 +9,7 @@ import (
 
 var (
 	runMode string
-	Config  *configContext
+	Config  *ConfigContext
 )
 
 func Init(mode ...string) {
