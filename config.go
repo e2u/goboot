@@ -13,13 +13,13 @@ import (
 	ini "gopkg.in/ini.v1"
 )
 
-type configContext struct {
+type ConfigContext struct {
 	*ini.File
 	RunModeSection *ini.Section
 	DefaultSection *ini.Section
 }
 
-func NewConfigWithFile(file, runMode string) *configContext {
+func NewConfigWithFile(file, runMode string) *ConfigContext {
 	cfg, err := ini.Load(file)
 	if err != nil {
 		panic(err)
@@ -28,7 +28,7 @@ func NewConfigWithFile(file, runMode string) *configContext {
 	return newConfigContextWithMode(cfg, runMode)
 }
 
-func NewConfigWithoutFile(runMode string) *configContext {
+func NewConfigWithoutFile(runMode string) *ConfigContext {
 	cfg := ini.Empty()
 	envs := []string{ini.DEFAULT_SECTION, "dev", "test", "prod", runMode}
 	for _, env := range envs {
@@ -46,7 +46,7 @@ func NewConfigWithoutFile(runMode string) *configContext {
 	return newConfigContextWithMode(cfg, runMode)
 }
 
-func newConfigContextWithMode(cfg *ini.File, runMode string) *configContext {
+func newConfigContextWithMode(cfg *ini.File, runMode string) *ConfigContext {
 
 	readIncludeFile := func(name string) (*ini.Section, error) {
 		nameSplit := strings.Split(name, ":")
@@ -91,7 +91,7 @@ func newConfigContextWithMode(cfg *ini.File, runMode string) *configContext {
 		return nil
 	}
 
-	return &configContext{
+	return &ConfigContext{
 		File: cfg,
 		RunModeSection: func() *ini.Section {
 			sec, _ := cfg.GetSection(runMode)
@@ -106,51 +106,51 @@ func newConfigContextWithMode(cfg *ini.File, runMode string) *configContext {
 	}
 }
 
-func (c *configContext) LogLevel() string {
+func (c *ConfigContext) LogLevel() string {
 	return c.LogLevel()
 }
 
-func (c *configContext) SetModeDev(b bool) {
+func (c *ConfigContext) SetModeDev(b bool) {
 	c.RunModeSection.Key(IniModeDev).SetValue(strconv.FormatBool(b))
 }
 
-func (c *configContext) ModeDev() bool {
+func (c *ConfigContext) ModeDev() bool {
 	return c.MustBool(IniModeDev)
 }
 
-func (c *configContext) LogDumpHttpRequest() bool {
+func (c *ConfigContext) LogDumpHttpRequest() bool {
 	return c.MustBool(IniDumpHttpRequest)
 }
 
-func (c *configContext) LogDumpHttpRequestBody() bool {
+func (c *ConfigContext) LogDumpHttpRequestBody() bool {
 	return c.MustBool(IniDumpHttpRequestBody)
 }
 
-func (c *configContext) LogDumpHttpResponse() bool {
+func (c *ConfigContext) LogDumpHttpResponse() bool {
 	return c.MustBool(IniDumpHttpResponse)
 }
 
-func (c *configContext) LogDumpHttpResponseBody() bool {
+func (c *ConfigContext) LogDumpHttpResponseBody() bool {
 	return c.MustBool(IniDumpHttpResponseBody)
 }
 
-func (c *configContext) SetLogDumpHttpRequest(b bool) {
+func (c *ConfigContext) SetLogDumpHttpRequest(b bool) {
 	c.RunModeSection.Key(IniDumpHttpRequest).SetValue(strconv.FormatBool(b))
 }
 
-func (c *configContext) SetLogDumpHttpRequestBody(b bool) {
+func (c *ConfigContext) SetLogDumpHttpRequestBody(b bool) {
 	c.RunModeSection.Key(IniDumpHttpRequestBody).SetValue(strconv.FormatBool(b))
 }
 
-func (c *configContext) SetLogDumpHttpResponse(b bool) {
+func (c *ConfigContext) SetLogDumpHttpResponse(b bool) {
 	c.RunModeSection.Key(IniDumpHttpResponse).SetValue(strconv.FormatBool(b))
 }
 
-func (c *configContext) SetLogDumpHttpResponseBody(b bool) {
+func (c *ConfigContext) SetLogDumpHttpResponseBody(b bool) {
 	c.RunModeSection.Key(IniDumpHttpResponseBody).SetValue(strconv.FormatBool(b))
 }
 
-func (c *configContext) mustKeyValue(key string) (*ini.Key, error) {
+func (c *ConfigContext) mustKeyValue(key string) (*ini.Key, error) {
 	switch {
 	case c.RunModeSection != nil && c.RunModeSection.HasKey(key):
 		return c.RunModeSection.Key(key), nil
@@ -161,7 +161,7 @@ func (c *configContext) mustKeyValue(key string) (*ini.Key, error) {
 	}
 }
 
-func (c *configContext) MustInt(key string, defaultVal ...int) int {
+func (c *ConfigContext) MustInt(key string, defaultVal ...int) int {
 	if v, err := c.mustKeyValue(key); err == nil {
 		return v.MustInt()
 	} else if len(defaultVal) == 0 {
@@ -170,7 +170,7 @@ func (c *configContext) MustInt(key string, defaultVal ...int) int {
 	return defaultVal[0]
 }
 
-func (c *configContext) MustBool(key string, defaultVal ...bool) bool {
+func (c *ConfigContext) MustBool(key string, defaultVal ...bool) bool {
 	if v, err := c.mustKeyValue(key); err == nil {
 		return v.MustBool()
 	} else if len(defaultVal) == 0 {
@@ -179,7 +179,7 @@ func (c *configContext) MustBool(key string, defaultVal ...bool) bool {
 	return defaultVal[0]
 }
 
-func (c *configContext) MustDuration(key string, defaultVal ...time.Duration) time.Duration {
+func (c *ConfigContext) MustDuration(key string, defaultVal ...time.Duration) time.Duration {
 	if v, err := c.mustKeyValue(key); err == nil {
 		return v.MustDuration()
 	} else if len(defaultVal) == 0 {
@@ -188,7 +188,7 @@ func (c *configContext) MustDuration(key string, defaultVal ...time.Duration) ti
 	return defaultVal[0]
 }
 
-func (c *configContext) MustFloat64(key string, defaultVal ...float64) float64 {
+func (c *ConfigContext) MustFloat64(key string, defaultVal ...float64) float64 {
 	if v, err := c.mustKeyValue(key); err == nil {
 		return v.MustFloat64()
 	} else if len(defaultVal) == 0 {
@@ -197,7 +197,7 @@ func (c *configContext) MustFloat64(key string, defaultVal ...float64) float64 {
 	return defaultVal[0]
 }
 
-func (c *configContext) MustString(key string, defaultVal ...string) string {
+func (c *ConfigContext) MustString(key string, defaultVal ...string) string {
 	if v, err := c.mustKeyValue(key); err == nil {
 		return v.String()
 	} else if len(defaultVal) == 0 {
@@ -206,7 +206,7 @@ func (c *configContext) MustString(key string, defaultVal ...string) string {
 	return defaultVal[0]
 }
 
-func (c *configContext) MustTime(key string, defaultVal ...time.Time) time.Time {
+func (c *ConfigContext) MustTime(key string, defaultVal ...time.Time) time.Time {
 	if v, err := c.mustKeyValue(key); err == nil {
 		return v.MustTime()
 	} else if len(defaultVal) == 0 {
@@ -216,7 +216,7 @@ func (c *configContext) MustTime(key string, defaultVal ...time.Time) time.Time 
 	return defaultVal[0]
 }
 
-func (c *configContext) MustTimeFormat(key, format string, defaultVal ...time.Time) time.Time {
+func (c *ConfigContext) MustTimeFormat(key, format string, defaultVal ...time.Time) time.Time {
 	if v, err := c.mustKeyValue(key); err == nil {
 		return v.MustTimeFormat(format)
 	} else if len(defaultVal) == 0 {
@@ -226,7 +226,7 @@ func (c *configContext) MustTimeFormat(key, format string, defaultVal ...time.Ti
 	return defaultVal[0]
 }
 
-func (c *configContext) MustUint(key string, defaultVal ...uint) uint {
+func (c *ConfigContext) MustUint(key string, defaultVal ...uint) uint {
 	if v, err := c.mustKeyValue(key); err == nil {
 		return v.MustUint()
 	} else if len(defaultVal) == 0 {
@@ -235,7 +235,7 @@ func (c *configContext) MustUint(key string, defaultVal ...uint) uint {
 	return defaultVal[0]
 }
 
-func (c *configContext) MustUint64(key string, defaultVal ...uint64) uint64 {
+func (c *ConfigContext) MustUint64(key string, defaultVal ...uint64) uint64 {
 	if v, err := c.mustKeyValue(key); err == nil {
 		return v.MustUint64()
 	} else if len(defaultVal) == 0 {
@@ -244,7 +244,7 @@ func (c *configContext) MustUint64(key string, defaultVal ...uint64) uint64 {
 	return defaultVal[0]
 }
 
-func (c *configContext) MustURL(key string, defaultVal ...interface{}) *url.URL {
+func (c *ConfigContext) MustURL(key string, defaultVal ...interface{}) *url.URL {
 	parseURL := func(v interface{}) *url.URL {
 		switch v.(type) {
 		case string:
@@ -274,7 +274,7 @@ func (c *configContext) MustURL(key string, defaultVal ...interface{}) *url.URL 
 	return parseURL(defaultVal[0])
 }
 
-func (c *configContext) MustBase64String(key string, defaultVal ...[]byte) []byte {
+func (c *ConfigContext) MustBase64String(key string, defaultVal ...[]byte) []byte {
 	kv := c.MustString(key)
 	if kv == "" && len(defaultVal) == 0 {
 		return nil
@@ -290,7 +290,7 @@ func (c *configContext) MustBase64String(key string, defaultVal ...[]byte) []byt
 	return defaultVal[0]
 }
 
-func (c *configContext) MustHexString(key string, defaultVal ...[]byte) []byte {
+func (c *ConfigContext) MustHexString(key string, defaultVal ...[]byte) []byte {
 	kv := c.MustString(key)
 	if kv == "" && len(defaultVal) == 0 {
 		return nil
@@ -307,7 +307,7 @@ func (c *configContext) MustHexString(key string, defaultVal ...[]byte) []byte {
 	return defaultVal[0]
 }
 
-func (c *configContext) MustStringArray(key string, sep string, defaultVal ...string) []string {
+func (c *ConfigContext) MustStringArray(key string, sep string, defaultVal ...string) []string {
 	kv := c.MustString(key)
 	if kv == "" && len(defaultVal) == 0 {
 		return nil

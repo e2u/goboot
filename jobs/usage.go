@@ -26,6 +26,8 @@ func main() {
 	selfConcurrent = true
 	MainCron.Start()
 	fmt.Println("Go to /@jobs to see job status.")
+	go jobs.Every(time.Minute, app.HealthJob{})
+	go jobs.Every(time.Second*3, ChargeQueryJob{})
 }
 
 */
