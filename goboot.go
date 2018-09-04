@@ -18,14 +18,22 @@ func Init(mode ...string) {
 	} else {
 		runMode = mode[0]
 	}
-
-	if _, err := os.Stat("conf/app.conf"); os.IsNotExist(err) {
-		Config = NewConfigWithoutFile(runMode)
-	} else {
+	if fileExists("conf/app.conf") {
 		Config = NewConfigWithFile("conf/app.conf", runMode)
+	} else {
+		Config = NewConfigWithoutFile(runMode)
 	}
 
 	InitLogger()
+}
+
+func fileExists(name string) bool {
+	if _, err := os.Stat(name); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	}
+	return true
 }
 
 func InitWithModeAndFile(mode, file string) {
